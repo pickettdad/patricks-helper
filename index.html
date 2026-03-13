@@ -1,0 +1,1704 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Patrick's Answer Helper</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        :root {
+            --primary: #4A90A4;
+            --primary-dark: #3A7A8E;
+            --secondary: #7CB342;
+            --secondary-dark: #689F38;
+            --bg: #F5F7FA;
+            --card: #FFFFFF;
+            --text: #2D3748;
+            --text-light: #718096;
+            --success: #48BB78;
+            --success-dark: #38A169;
+            --warning: #F6AD55;
+            --error: #FC8181;
+            --purple: #9F7AEA;
+            --shadow: 0 4px 20px rgba(0,0,0,0.08);
+            --shadow-lg: 0 10px 40px rgba(0,0,0,0.12);
+        }
+        
+        body {
+            font-family: 'Nunito', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        /* ── Header ── */
+        .header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            padding: 1.25rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: var(--shadow);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .header h1 { font-size: 1.6rem; font-weight: 800; letter-spacing: -0.02em; }
+        .header-buttons { display: flex; gap: 0.5rem; }
+        
+        .header-btn {
+            background: rgba(255,255,255,0.2);
+            border: 2px solid rgba(255,255,255,0.4);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .header-btn:hover { background: rgba(255,255,255,0.3); border-color: rgba(255,255,255,0.6); }
+        .header-btn.highlight {
+            background: rgba(255,255,255,0.9);
+            color: var(--primary-dark);
+        }
+        .header-btn.highlight:hover { background: white; }
+
+        /* ── Iframe notice ── */
+        .iframe-notice {
+            background: linear-gradient(135deg, #FFF9E6, #FFF3CD);
+            border-bottom: 3px solid var(--warning);
+            padding: 1rem 2rem;
+            text-align: center;
+            display: none;
+        }
+        .iframe-notice p { margin-bottom: 0.75rem; font-weight: 600; }
+        .open-fullscreen-big {
+            background: linear-gradient(135deg, var(--secondary), var(--secondary-dark));
+            color: white; border: none;
+            padding: 1rem 2.5rem; border-radius: 12px;
+            font-family: inherit; font-size: 1.25rem; font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(124,179,66,0.4);
+            transition: all 0.2s ease;
+        }
+        .open-fullscreen-big:hover { transform: scale(1.05); }
+
+        /* ── Container ── */
+        .container { max-width: 800px; margin: 0 auto; padding: 2rem; }
+        .student-view { display: flex; flex-direction: column; gap: 1.5rem; }
+
+        /* ── Cards ── */
+        .card {
+            background: var(--card);
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: var(--shadow);
+        }
+        .card-label {
+            font-size: 0.85rem; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 0.08em;
+            color: var(--text-light); margin-bottom: 1rem;
+        }
+        .main-card { border-left: 5px solid var(--primary); }
+
+        /* ── Question ── */
+        .question-text {
+            font-size: 1.5rem; font-weight: 600; line-height: 1.5;
+            color: var(--text); min-height: 3rem;
+        }
+        .question-text.empty { color: var(--text-light); font-style: italic; }
+        .question-text.follow-up { color: var(--purple); }
+
+        .replay-btn {
+            background: none; border: 2px solid var(--primary);
+            color: var(--primary); padding: 0.4rem 0.8rem;
+            border-radius: 6px; font-family: inherit;
+            font-size: 0.8rem; font-weight: 700;
+            cursor: pointer; margin-top: 0.75rem;
+            transition: all 0.2s ease;
+            display: none;
+        }
+        .replay-btn:hover { background: var(--primary); color: white; }
+        .replay-btn.visible { display: inline-block; }
+
+        /* ── Status ── */
+        .status-area {
+            margin-top: 1.5rem; padding-top: 1.5rem;
+            border-top: 2px solid var(--bg);
+            display: none;
+        }
+        .status-area.visible { display: block; }
+        .status-text {
+            font-size: 1.1rem; font-weight: 600;
+            color: var(--text); min-height: 1.5rem; text-align: center;
+        }
+        .status-text.listening { color: var(--error); }
+        .status-text.speaking { color: var(--primary); }
+        .progress-info {
+            margin-top: 0.75rem; font-size: 0.95rem;
+            color: var(--text-light); text-align: center;
+        }
+        .progress-bar {
+            margin-top: 0.5rem; height: 8px;
+            background: #E2E8F0; border-radius: 4px;
+            overflow: hidden; display: none;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--secondary), var(--success));
+            border-radius: 4px; transition: width 0.3s ease;
+        }
+
+        /* ── Encouragement badge ── */
+        .encouragement {
+            text-align: center; font-size: 1.1rem; font-weight: 700;
+            color: var(--success); padding: 0.5rem;
+            opacity: 0; transition: opacity 0.4s ease;
+            min-height: 2rem;
+        }
+        .encouragement.visible { opacity: 1; }
+
+        /* ── Confirm what was heard ── */
+        .confirm-area {
+            display: none; margin-top: 1rem;
+            background: #F7FAFC; border-radius: 12px;
+            padding: 1.25rem; border: 2px solid #E2E8F0;
+        }
+        .confirm-area.visible { display: block; }
+        .confirm-label {
+            font-size: 0.8rem; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 0.06em;
+            color: var(--text-light); margin-bottom: 0.5rem;
+        }
+        .confirm-text {
+            font-size: 1.15rem; font-weight: 600;
+            color: var(--text); margin-bottom: 1rem;
+        }
+        .confirm-buttons { display: flex; gap: 0.75rem; }
+        .confirm-btn {
+            flex: 1; padding: 0.75rem 1rem; border-radius: 10px;
+            font-family: inherit; font-size: 1rem; font-weight: 700;
+            cursor: pointer; border: none; transition: all 0.15s ease;
+        }
+        .confirm-btn.keep {
+            background: var(--secondary); color: white;
+            box-shadow: 0 3px 10px rgba(124,179,66,0.3);
+        }
+        .confirm-btn.keep:hover { background: var(--secondary-dark); }
+        .confirm-btn.retry {
+            background: white; color: var(--text);
+            border: 2px solid #E2E8F0;
+        }
+        .confirm-btn.retry:hover { background: var(--bg); border-color: var(--text-light); }
+
+        /* ── Big Start Button ── */
+        .start-button {
+            margin-top: 1.5rem;
+            background: linear-gradient(135deg, var(--secondary), var(--secondary-dark));
+            color: white; border: none;
+            padding: 1.5rem 3rem; border-radius: 16px;
+            font-family: inherit; font-size: 1.5rem; font-weight: 800;
+            cursor: pointer;
+            display: inline-flex; align-items: center; justify-content: center; gap: 1rem;
+            transition: all 0.2s ease;
+            box-shadow: 0 6px 20px rgba(124,179,66,0.4);
+            width: 100%;
+        }
+        .start-button:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(124,179,66,0.5); }
+        .start-button:active:not(:disabled) { transform: translateY(0); }
+        .start-button:disabled { opacity: 0.6; cursor: not-allowed; }
+        .start-button.listening {
+            background: linear-gradient(135deg, var(--error), #E53E3E);
+            animation: pulse 1.5s ease-in-out infinite;
+            box-shadow: 0 6px 20px rgba(252,129,129,0.5);
+        }
+        .start-button.speaking {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            box-shadow: 0 6px 20px rgba(74,144,164,0.4);
+        }
+        .start-button.thinking {
+            background: linear-gradient(135deg, var(--purple), #805AD5);
+            box-shadow: 0 6px 20px rgba(159,122,234,0.4);
+        }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.03); }
+        }
+        .start-button svg { width: 32px; height: 32px; }
+
+        /* ── Done Button ── */
+        .done-button {
+            margin-top: 1rem;
+            background: var(--text-light); color: white; border: none;
+            padding: 0.85rem 1.5rem; border-radius: 10px;
+            font-family: inherit; font-size: 1.05rem; font-weight: 700;
+            cursor: pointer; transition: all 0.2s ease;
+            display: none; width: 100%;
+        }
+        .done-button.visible { display: block; }
+        .done-button:hover { background: var(--text); }
+
+        /* ── Conversation History ── */
+        .conversation-card { border-left: 5px solid var(--purple); display: none; }
+        .conversation-card.visible { display: block; }
+        .conversation-header {
+            display: flex; justify-content: space-between;
+            align-items: center; cursor: pointer;
+        }
+        .conversation-toggle {
+            background: var(--bg); border: none;
+            padding: 0.5rem 1rem; border-radius: 6px;
+            font-family: inherit; font-size: 0.85rem;
+            font-weight: 600; color: var(--text-light); cursor: pointer;
+        }
+        .conversation-toggle:hover { background: #E2E8F0; }
+        .conversation-list {
+            display: flex; flex-direction: column; gap: 0.75rem;
+            margin-top: 1rem; max-height: 300px; overflow-y: auto;
+        }
+        .conversation-list.collapsed { display: none; }
+        .conversation-item {
+            padding: 0.75rem 1rem; border-radius: 8px;
+            background: #FAFAFA; font-size: 0.95rem;
+        }
+        .conversation-item.question { background: #EBF8FF; border-left: 3px solid var(--primary); }
+        .conversation-item.answer { background: #F0FFF4; border-left: 3px solid var(--secondary); }
+        .conversation-item-label {
+            font-size: 0.7rem; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 0.05em;
+            color: var(--text-light); margin-bottom: 0.25rem;
+        }
+        .conversation-item-text { line-height: 1.4; }
+
+        /* ── Error Display ── */
+        .error-message {
+            background: #FFF5F5; border: 2px solid var(--error);
+            border-radius: 8px; padding: 1rem; color: #C53030;
+            margin-top: 1rem; display: none; font-size: 0.9rem;
+        }
+        .error-message.visible { display: block; }
+
+        /* ═══════════════════════════════════════════
+           WRITE THIS — Full-screen final answer overlay
+           ═══════════════════════════════════════════ */
+        .write-overlay {
+            position: fixed; inset: 0;
+            background: white; z-index: 2000;
+            display: none; flex-direction: column;
+            overflow-y: auto;
+        }
+        .write-overlay.visible { display: flex; }
+
+        .write-overlay-header {
+            background: linear-gradient(135deg, var(--success), var(--success-dark));
+            color: white; padding: 1.25rem 2rem;
+            text-align: center; flex-shrink: 0;
+        }
+        .write-overlay-header h2 {
+            font-size: 1.5rem; font-weight: 800;
+        }
+
+        .write-overlay-body {
+            flex: 1; display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            padding: 2rem;
+            max-width: 700px; margin: 0 auto; width: 100%;
+        }
+
+        .write-question-section {
+            width: 100%; margin-bottom: 1.5rem;
+            text-align: center;
+        }
+        .write-question-label {
+            font-size: 0.8rem; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 0.1em;
+            color: var(--text-light); margin-bottom: 0.5rem;
+        }
+        .write-question-text {
+            font-size: 1.15rem; font-weight: 600;
+            color: var(--text); line-height: 1.5;
+        }
+
+        .write-divider {
+            width: 60px; height: 4px;
+            background: var(--success); border-radius: 2px;
+            margin: 0.5rem 0 1.5rem;
+        }
+
+        .write-answer-label {
+            font-size: 1.1rem; font-weight: 800;
+            text-transform: uppercase; letter-spacing: 0.12em;
+            color: var(--success); margin-bottom: 1.25rem;
+            display: flex; align-items: center; gap: 0.5rem;
+        }
+
+        .write-answer-lines {
+            width: 100%;
+            display: flex; flex-direction: column; gap: 0;
+        }
+        .write-sentence {
+            font-size: 1.45rem; font-weight: 600;
+            line-height: 1.8; color: var(--text);
+            padding: 0.6rem 1rem;
+            border-bottom: 2px dotted #E2E8F0;
+            background: linear-gradient(to bottom, transparent 95%, #f0f0f0 95%);
+        }
+        .write-sentence:last-child { border-bottom: none; }
+
+        .write-buttons {
+            margin-top: 2rem; display: flex;
+            gap: 1rem; width: 100%; flex-wrap: wrap;
+        }
+        .write-btn {
+            flex: 1; min-width: 140px;
+            padding: 1rem 1.5rem; border-radius: 12px;
+            font-family: inherit; font-size: 1.1rem; font-weight: 700;
+            cursor: pointer; border: none; transition: all 0.2s ease;
+        }
+        .write-btn.read-aloud {
+            background: var(--primary); color: white;
+            box-shadow: 0 4px 15px rgba(74,144,164,0.3);
+        }
+        .write-btn.read-aloud:hover { background: var(--primary-dark); }
+        .write-btn.all-done {
+            background: var(--secondary); color: white;
+            box-shadow: 0 4px 15px rgba(124,179,66,0.3);
+        }
+        .write-btn.all-done:hover { background: var(--secondary-dark); }
+
+        /* ── Confetti Canvas ── */
+        #confettiCanvas {
+            position: fixed; inset: 0;
+            pointer-events: none; z-index: 3000;
+        }
+
+        /* ── Teacher Panel ── */
+        .teacher-panel {
+            display: none; position: fixed; inset: 0;
+            background: rgba(0,0,0,0.5); z-index: 1000;
+            padding: 2rem; overflow-y: auto;
+        }
+        .teacher-panel.visible {
+            display: flex; justify-content: center; align-items: flex-start;
+        }
+        .teacher-content {
+            background: white; border-radius: 16px; padding: 2rem;
+            max-width: 600px; width: 100%;
+            box-shadow: var(--shadow-lg); margin-top: 2rem;
+        }
+        .teacher-header {
+            display: flex; justify-content: space-between;
+            align-items: center; margin-bottom: 1.5rem;
+            padding-bottom: 1rem; border-bottom: 2px solid var(--bg);
+        }
+        .teacher-header h2 { font-size: 1.5rem; font-weight: 800; }
+        .close-button {
+            background: var(--bg); border: none;
+            width: 40px; height: 40px; border-radius: 50%;
+            font-size: 1.5rem; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            color: var(--text-light); transition: all 0.2s ease;
+        }
+        .close-button:hover { background: var(--error); color: white; }
+
+        .form-group { margin-bottom: 1.5rem; }
+        .form-group label { display: block; font-weight: 700; margin-bottom: 0.5rem; }
+        .form-group .hint { font-size: 0.85rem; color: var(--text-light); margin-bottom: 0.5rem; }
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%; padding: 0.875rem 1rem;
+            border: 2px solid #E2E8F0; border-radius: 8px;
+            font-family: inherit; font-size: 1rem;
+            transition: border-color 0.2s ease;
+        }
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus { outline: none; border-color: var(--primary); }
+        .form-group textarea { min-height: 100px; resize: vertical; }
+        .form-row { display: flex; gap: 1rem; }
+        .form-row .form-group { flex: 1; }
+
+        .criteria-section {
+            background: #F7FAFC; border-radius: 8px;
+            padding: 1rem; margin-bottom: 1.5rem;
+        }
+        .criteria-section h3 { font-size: 1rem; font-weight: 700; margin-bottom: 0.75rem; }
+
+        .save-button {
+            background: var(--primary); color: white; border: none;
+            padding: 1rem 2rem; border-radius: 8px;
+            font-family: inherit; font-size: 1.1rem; font-weight: 700;
+            cursor: pointer; width: 100%; transition: all 0.2s ease;
+        }
+        .save-button:hover { background: var(--primary-dark); }
+        .save-status {
+            text-align: center; margin-top: 1rem;
+            font-weight: 600; min-height: 1.5rem;
+        }
+        .save-status.success { color: var(--success); }
+        .save-status.error { color: var(--error); }
+
+        /* ── PIN Modal ── */
+        .pin-modal {
+            display: none; position: fixed; inset: 0;
+            background: rgba(0,0,0,0.5); z-index: 1500;
+            justify-content: center; align-items: center;
+        }
+        .pin-modal.visible { display: flex; }
+        .pin-box {
+            background: white; border-radius: 16px;
+            padding: 2rem; max-width: 360px; width: 90%;
+            box-shadow: var(--shadow-lg); text-align: center;
+        }
+        .pin-box h3 { font-size: 1.25rem; margin-bottom: 1rem; }
+        .pin-input {
+            width: 100%; padding: 1rem; border: 2px solid #E2E8F0;
+            border-radius: 8px; font-family: inherit;
+            font-size: 1.5rem; text-align: center;
+            letter-spacing: 0.5em; transition: border-color 0.2s ease;
+        }
+        .pin-input:focus { outline: none; border-color: var(--primary); }
+        .pin-input.error { border-color: var(--error); animation: shake 0.4s ease; }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-8px); }
+            75% { transform: translateX(8px); }
+        }
+        .pin-buttons { display: flex; gap: 0.75rem; margin-top: 1.25rem; }
+        .pin-btn {
+            flex: 1; padding: 0.75rem; border-radius: 8px;
+            font-family: inherit; font-size: 1rem; font-weight: 700;
+            cursor: pointer; border: none; transition: all 0.15s ease;
+        }
+        .pin-btn.cancel { background: var(--bg); color: var(--text); }
+        .pin-btn.submit { background: var(--primary); color: white; }
+        .pin-hint {
+            font-size: 0.8rem; color: var(--text-light);
+            margin-top: 0.75rem;
+        }
+
+        /* ── Responsive ── */
+        @media (max-width: 600px) {
+            .header { padding: 1rem; flex-wrap: wrap; gap: 0.5rem; }
+            .header h1 { font-size: 1.2rem; width: 100%; text-align: center; }
+            .header-buttons { width: 100%; justify-content: center; }
+            .container { padding: 0.75rem; }
+            .card { padding: 1.25rem; }
+            .question-text { font-size: 1.15rem; }
+            .start-button { font-size: 1.15rem; padding: 1rem 1.5rem; }
+            .teacher-content { margin-top: 0; border-radius: 12px; padding: 1.5rem; }
+            .form-row { flex-direction: column; gap: 0; }
+            .iframe-notice { padding: 0.75rem 1rem; }
+            .open-fullscreen-big { padding: 0.875rem 2rem; font-size: 1.1rem; }
+            .header-btn { padding: 0.4rem 0.7rem; font-size: 0.8rem; }
+            .write-sentence { font-size: 1.2rem; }
+            .write-overlay-body { padding: 1.25rem; }
+            .write-buttons { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Confetti Canvas -->
+    <canvas id="confettiCanvas"></canvas>
+
+    <!-- Header -->
+    <header class="header">
+        <h1>📝 Patrick's Answer Helper</h1>
+        <div class="header-buttons">
+            <button class="header-btn highlight" onclick="openFullScreen()" id="fullscreenBtn" style="display:none;">
+                🔲 Full Screen
+            </button>
+            <button class="header-btn" onclick="requestTeacherAccess()">
+                ⚙️ Teacher Setup
+            </button>
+        </div>
+    </header>
+
+    <!-- Iframe notice -->
+    <div class="iframe-notice" id="iframeNotice">
+        <p>For the best experience, open in full screen:</p>
+        <button class="open-fullscreen-big" onclick="openFullScreen()">🚀 Open Full Screen</button>
+    </div>
+
+    <!-- Main Student View -->
+    <main class="container">
+        <div class="student-view">
+            <!-- Main Interaction Card -->
+            <div class="card main-card">
+                <div class="card-label" id="questionLabel">📖 The Question</div>
+                <div id="questionText" class="question-text empty">
+                    No question set yet. Ask your teacher to add one!
+                </div>
+                <button class="replay-btn" id="replayBtn" onclick="replayCurrentQuestion()">
+                    🔊 Read it again
+                </button>
+
+                <!-- Status Area -->
+                <div class="status-area" id="statusArea">
+                    <div id="statusText" class="status-text">Ready</div>
+                    <div id="encouragement" class="encouragement"></div>
+                    <div id="progressInfo" class="progress-info"></div>
+                    <div class="progress-bar" id="progressBar">
+                        <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <!-- Confirm what was heard -->
+                <div class="confirm-area" id="confirmArea">
+                    <div class="confirm-label">🎤 I heard you say:</div>
+                    <div class="confirm-text" id="confirmText"></div>
+                    <div class="confirm-buttons">
+                        <button class="confirm-btn keep" onclick="confirmResponse(true)">👍 That's right!</button>
+                        <button class="confirm-btn retry" onclick="confirmResponse(false)">🔄 Try again</button>
+                    </div>
+                </div>
+
+                <button id="startButton" class="start-button" onclick="handleMainButton()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                    </svg>
+                    <span>Start</span>
+                </button>
+
+                <button id="doneButton" class="done-button" onclick="finishEarly()">
+                    ✓ I'm Done Answering
+                </button>
+
+                <div id="errorMessage" class="error-message"></div>
+            </div>
+
+            <!-- Conversation History (collapsed by default) -->
+            <div class="card conversation-card" id="conversationCard">
+                <div class="conversation-header" onclick="toggleConversation()">
+                    <div class="card-label" style="margin-bottom:0;">💬 Our Conversation</div>
+                    <button class="conversation-toggle" id="conversationToggle">Show</button>
+                </div>
+                <div id="conversationList" class="conversation-list collapsed"></div>
+            </div>
+        </div>
+    </main>
+
+    <!-- ═══ WRITE THIS Overlay ═══ -->
+    <div class="write-overlay" id="writeOverlay">
+        <div class="write-overlay-header">
+            <h2>✏️ Time to Write!</h2>
+        </div>
+        <div class="write-overlay-body">
+            <div class="write-question-section">
+                <div class="write-question-label">The Question</div>
+                <div class="write-question-text" id="writeQuestion"></div>
+            </div>
+            <div class="write-divider"></div>
+            <div class="write-answer-label">✏️ Write This Down</div>
+            <div class="write-answer-lines" id="writeAnswerLines"></div>
+            <div class="write-buttons">
+                <button class="write-btn read-aloud" onclick="readFinalAnswerAloud()">
+                    🔊 Read it to me
+                </button>
+                <button class="write-btn all-done" onclick="closeWriteOverlay()">
+                    ✅ All done!
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- PIN Modal -->
+    <div class="pin-modal" id="pinModal">
+        <div class="pin-box">
+            <h3>🔒 Teacher Access</h3>
+            <input type="password" class="pin-input" id="pinInput"
+                   maxlength="4" inputmode="numeric" pattern="[0-9]*"
+                   placeholder="••••" autocomplete="off">
+            <div class="pin-buttons">
+                <button class="pin-btn cancel" onclick="closePinModal()">Cancel</button>
+                <button class="pin-btn submit" onclick="submitPin()">Enter</button>
+            </div>
+            <div class="pin-hint" id="pinHint">Enter your 4-digit PIN</div>
+        </div>
+    </div>
+
+    <!-- Teacher Panel -->
+    <div id="teacherPanel" class="teacher-panel">
+        <div class="teacher-content">
+            <div class="teacher-header">
+                <h2>⚙️ Teacher Setup</h2>
+                <button class="close-button" onclick="closeTeacherPanel()">×</button>
+            </div>
+            <form id="teacherForm" onsubmit="saveSettings(event)">
+                <div class="form-group">
+                    <label for="questionInput">Question for Patrick</label>
+                    <div class="hint">The main question Patrick needs to answer</div>
+                    <textarea id="questionInput" placeholder="Example: What did you do at school today?"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="contextInput">AI Context (Patrick won't see this)</label>
+                    <div class="hint">Help the AI understand how to ask follow-ups and clean up responses</div>
+                    <textarea id="contextInput" placeholder="Example: Patrick is in Grade 2. Ask friendly follow-up questions to get more details. Keep language simple."></textarea>
+                </div>
+                <div class="criteria-section">
+                    <h3>📊 Follow-up Criteria</h3>
+                    <div class="hint" style="margin-bottom:1rem;">AI will keep asking follow-up questions until this goal is met</div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="criteriaType">Goal Type</label>
+                            <select id="criteriaType" onchange="updateCriteriaUI()">
+                                <option value="details">Number of Details</option>
+                                <option value="words">Word Count</option>
+                                <option value="complete">Complete Answer (AI judges)</option>
+                            </select>
+                        </div>
+                        <div class="form-group" id="criteriaValueGroup">
+                            <label for="criteriaValue">Target</label>
+                            <input type="number" id="criteriaValue" min="1" value="4" placeholder="4">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="maxFollowups">Maximum Follow-up Questions</label>
+                        <div class="hint">Stop after this many follow-ups even if goal isn't met</div>
+                        <input type="number" id="maxFollowups" min="1" max="10" value="5">
+                    </div>
+                    <div class="form-group">
+                        <label for="silenceTimeout">Silence Timeout (seconds)</label>
+                        <div class="hint">How long to wait after they stop talking before moving on</div>
+                        <input type="number" id="silenceTimeout" min="2" max="15" value="5">
+                    </div>
+                </div>
+                <div class="criteria-section">
+                    <h3>🔊 Reading Voice</h3>
+                    <div class="hint" style="margin-bottom:1rem;">Choose the voice that reads questions aloud to Patrick</div>
+                    <div class="form-group" style="margin-bottom:0.5rem;">
+                        <select id="voiceSelect">
+                            <option value="">Loading voices...</option>
+                        </select>
+                    </div>
+                    <button type="button" onclick="previewVoice()" style="
+                        background: none; border: 2px solid var(--primary);
+                        color: var(--primary); padding: 0.4rem 1rem;
+                        border-radius: 6px; font-family: inherit;
+                        font-size: 0.85rem; font-weight: 700;
+                        cursor: pointer; transition: all 0.15s ease;
+                    ">▶ Preview voice</button>
+                </div>
+                <div class="criteria-section">
+                    <h3>🔒 Teacher PIN</h3>
+                    <div class="hint" style="margin-bottom:1rem;">Protects settings from accidental changes</div>
+                    <div class="form-group" style="margin-bottom:0;">
+                        <label for="pinSetup">4-Digit PIN</label>
+                        <input type="password" id="pinSetup" maxlength="4"
+                               inputmode="numeric" pattern="[0-9]*"
+                               placeholder="Enter a 4-digit PIN">
+                    </div>
+                </div>
+                <button type="submit" class="save-button">💾 Save Settings</button>
+                <div id="saveStatus" class="save-status"></div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // ============================================
+        // State & Configuration
+        // ============================================
+        let isRecording = false;
+        let recognition = null;
+        let currentTranscript = '';
+        let silenceTimer = null;
+        let sessionActive = false;
+        let conversationCollapsed = true; // collapsed by default
+        let pendingFinish = false;        // race condition guard
+        let silentRetryCount = 0;         // prevent infinite silence loops
+        let pendingResponse = '';         // held until user confirms
+
+        // Conversation state
+        let conversationHistory = [];
+        let allResponses = [];
+        let followupCount = 0;
+        let consecutiveDontKnow = 0;
+
+        const MAX_SILENT_RETRIES = 2;
+
+        const ENCOURAGEMENTS = [
+            "Great job! 🎉",
+            "Awesome! Keep going! ⭐",
+            "Nice work! 👏",
+            "You're doing great! 💪",
+            "That's a good answer! 🌟",
+            "Wonderful! 😊",
+        ];
+
+        // Meta-phrases to filter from final compilation
+        const META_PHRASES = [
+            "don't know", "dont know", "i don't remember", "i forgot",
+            "not sure", "can't remember", "that's all", "thats all",
+            "i'm done", "im done", "nothing else", "no more"
+        ];
+
+        const DONE_PHRASES = ["no more", "that's it", "that's all", "nothing else", "i'm done", "im done"];
+        const DONT_KNOW_PHRASES = ["don't know", "dont know", "i don't remember", "i forgot", "not sure", "can't remember"];
+
+        // Settings
+        let settings = {
+            question: '',
+            context: '',
+            criteriaType: 'details',
+            criteriaValue: 4,
+            maxFollowups: 5,
+            silenceTimeout: 5,
+            pin: '',
+            voiceName: ''
+        };
+
+        // ============================================
+        // Initialization
+        // ============================================
+        document.addEventListener('DOMContentLoaded', function() {
+            loadSettings();
+            initSpeechRecognition();
+            initVoices();
+            checkIfInIframe();
+
+            // PIN modal: submit on Enter
+            document.getElementById('pinInput').addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') submitPin();
+            });
+        });
+
+        function checkIfInIframe() {
+            try {
+                if (window.self !== window.top) {
+                    document.getElementById('iframeNotice').style.display = 'block';
+                    document.getElementById('fullscreenBtn').style.display = 'block';
+                }
+            } catch (e) {
+                document.getElementById('iframeNotice').style.display = 'block';
+                document.getElementById('fullscreenBtn').style.display = 'block';
+            }
+        }
+
+        function openFullScreen() { window.open(window.location.href, '_blank'); }
+
+        // ============================================
+        // Voice Selection
+        // ============================================
+        let availableVoices = [];
+
+        function initVoices() {
+            function populateVoices() {
+                availableVoices = speechSynthesis.getVoices()
+                    .filter(v => v.lang.startsWith('en'));
+
+                const select = document.getElementById('voiceSelect');
+                select.innerHTML = '';
+
+                // Default option
+                const defaultOpt = document.createElement('option');
+                defaultOpt.value = '';
+                defaultOpt.textContent = '— Browser default —';
+                select.appendChild(defaultOpt);
+
+                availableVoices.forEach(voice => {
+                    const opt = document.createElement('option');
+                    opt.value = voice.name;
+                    // Show friendly label: name + locale
+                    const label = voice.name.replace('Google ', '').replace('Microsoft ', '');
+                    opt.textContent = label + (voice.localService ? '' : ' ☁️');
+                    select.appendChild(opt);
+                });
+
+                // Restore saved selection
+                if (settings.voiceName) {
+                    select.value = settings.voiceName;
+                }
+            }
+
+            populateVoices();
+            // Chrome loads voices asynchronously
+            if (speechSynthesis.onvoiceschanged !== undefined) {
+                speechSynthesis.onvoiceschanged = populateVoices;
+            }
+        }
+
+        function getSelectedVoice() {
+            if (!settings.voiceName) return null;
+            return availableVoices.find(v => v.name === settings.voiceName) || null;
+        }
+
+        function previewVoice() {
+            speechSynthesis.cancel();
+            const tempVoiceName = document.getElementById('voiceSelect').value;
+            const voice = availableVoices.find(v => v.name === tempVoiceName) || null;
+            const u = new SpeechSynthesisUtterance('Hi Patrick! What did you do at school today?');
+            u.lang = 'en-US';
+            u.rate = 0.9;
+            if (voice) u.voice = voice;
+            speechSynthesis.speak(u);
+        }
+
+        // ============================================
+        // Teacher PIN & Panel
+        // ============================================
+        function requestTeacherAccess() {
+            if (!settings.pin) {
+                openTeacherPanel();
+                return;
+            }
+            document.getElementById('pinInput').value = '';
+            document.getElementById('pinInput').classList.remove('error');
+            document.getElementById('pinHint').textContent = 'Enter your 4-digit PIN';
+            document.getElementById('pinModal').classList.add('visible');
+            setTimeout(() => document.getElementById('pinInput').focus(), 100);
+        }
+
+        function submitPin() {
+            const entered = document.getElementById('pinInput').value;
+            if (entered === settings.pin) {
+                closePinModal();
+                openTeacherPanel();
+            } else {
+                document.getElementById('pinInput').classList.add('error');
+                document.getElementById('pinHint').textContent = 'Wrong PIN — try again';
+                document.getElementById('pinInput').value = '';
+                setTimeout(() => document.getElementById('pinInput').classList.remove('error'), 400);
+            }
+        }
+
+        function closePinModal() { document.getElementById('pinModal').classList.remove('visible'); }
+        function openTeacherPanel() { document.getElementById('teacherPanel').classList.add('visible'); }
+        function closeTeacherPanel() { document.getElementById('teacherPanel').classList.remove('visible'); }
+
+        document.getElementById('teacherPanel').addEventListener('click', function(e) {
+            if (e.target === this) closeTeacherPanel();
+        });
+
+        // ============================================
+        // Settings Management
+        // ============================================
+        function loadSettings() {
+            settings.question = localStorage.getItem('ph_question') || '';
+            settings.context = localStorage.getItem('ph_context') || '';
+            settings.criteriaType = localStorage.getItem('ph_criteriaType') || 'details';
+            settings.criteriaValue = parseInt(localStorage.getItem('ph_criteriaValue')) || 4;
+            settings.maxFollowups = parseInt(localStorage.getItem('ph_maxFollowups')) || 5;
+            settings.silenceTimeout = parseInt(localStorage.getItem('ph_silenceTimeout')) || 5;
+            settings.pin = localStorage.getItem('ph_pin') || '';
+            settings.voiceName = localStorage.getItem('ph_voiceName') || '';
+
+            document.getElementById('questionInput').value = settings.question;
+            document.getElementById('contextInput').value = settings.context;
+            document.getElementById('criteriaType').value = settings.criteriaType;
+            document.getElementById('criteriaValue').value = settings.criteriaValue;
+            document.getElementById('maxFollowups').value = settings.maxFollowups;
+            document.getElementById('silenceTimeout').value = settings.silenceTimeout;
+            document.getElementById('pinSetup').value = settings.pin;
+            document.getElementById('voiceSelect').value = settings.voiceName;
+
+            updateCriteriaUI();
+            updateQuestionDisplay(settings.question);
+        }
+
+        function saveSettings(e) {
+            e.preventDefault();
+
+            settings.question = document.getElementById('questionInput').value.trim();
+            settings.context = document.getElementById('contextInput').value.trim();
+            settings.criteriaType = document.getElementById('criteriaType').value;
+            settings.criteriaValue = parseInt(document.getElementById('criteriaValue').value) || 4;
+            settings.maxFollowups = parseInt(document.getElementById('maxFollowups').value) || 5;
+            settings.silenceTimeout = parseInt(document.getElementById('silenceTimeout').value) || 5;
+            settings.pin = document.getElementById('pinSetup').value.trim();
+            settings.voiceName = document.getElementById('voiceSelect').value;
+
+            localStorage.setItem('ph_question', settings.question);
+            localStorage.setItem('ph_context', settings.context);
+            localStorage.setItem('ph_criteriaType', settings.criteriaType);
+            localStorage.setItem('ph_criteriaValue', settings.criteriaValue);
+            localStorage.setItem('ph_maxFollowups', settings.maxFollowups);
+            localStorage.setItem('ph_silenceTimeout', settings.silenceTimeout);
+            localStorage.setItem('ph_pin', settings.pin);
+            localStorage.setItem('ph_voiceName', settings.voiceName);
+
+            const status = document.getElementById('saveStatus');
+            status.textContent = '✓ Settings saved!';
+            status.className = 'save-status success';
+
+            setTimeout(() => {
+                status.textContent = '';
+                closeTeacherPanel();
+                resetSession(true);
+                updateQuestionDisplay(settings.question);
+            }, 800);
+        }
+
+        function updateCriteriaUI() {
+            const type = document.getElementById('criteriaType').value;
+            const valueGroup = document.getElementById('criteriaValueGroup');
+            if (type === 'complete') {
+                valueGroup.style.display = 'none';
+            } else {
+                valueGroup.style.display = 'block';
+                document.getElementById('criteriaValue').placeholder = type === 'words' ? '50' : '4';
+            }
+        }
+
+        function updateQuestionDisplay(question, isFollowup = false) {
+            const questionEl = document.getElementById('questionText');
+            const labelEl = document.getElementById('questionLabel');
+            if (question) {
+                questionEl.textContent = question;
+                questionEl.classList.remove('empty');
+                if (isFollowup) {
+                    questionEl.classList.add('follow-up');
+                    labelEl.textContent = '💭 Follow-up Question';
+                } else {
+                    questionEl.classList.remove('follow-up');
+                    labelEl.textContent = '📖 The Question';
+                }
+            } else {
+                questionEl.textContent = "No question set yet. Ask your teacher to add one!";
+                questionEl.classList.add('empty');
+                questionEl.classList.remove('follow-up');
+                labelEl.textContent = '📖 The Question';
+            }
+        }
+
+        // ============================================
+        // UI Toggles
+        // ============================================
+        function toggleConversation() {
+            conversationCollapsed = !conversationCollapsed;
+            const list = document.getElementById('conversationList');
+            const toggle = document.getElementById('conversationToggle');
+            if (conversationCollapsed) {
+                list.classList.add('collapsed');
+                toggle.textContent = 'Show';
+            } else {
+                list.classList.remove('collapsed');
+                toggle.textContent = 'Hide';
+            }
+        }
+
+        // ============================================
+        // Main Session Flow
+        // ============================================
+        function handleMainButton() {
+            if (sessionActive && isRecording) {
+                stopRecordingAndProcess();
+                return;
+            }
+            startSession();
+        }
+
+        function startSession() {
+            if (!settings.question) {
+                alert('No question has been set yet! Ask your teacher to set one up.');
+                return;
+            }
+
+            resetSession(false);
+            sessionActive = true;
+
+            document.getElementById('statusArea').classList.add('visible');
+            document.getElementById('conversationCard').classList.add('visible');
+
+            addToConversation('question', settings.question);
+            readQuestionThenRecord(settings.question);
+        }
+
+        function resetSession(fullReset = true) {
+            sessionActive = false;
+            isRecording = false;
+            pendingFinish = false;
+            silentRetryCount = 0;
+            pendingResponse = '';
+            conversationHistory = [];
+            allResponses = [];
+            followupCount = 0;
+            consecutiveDontKnow = 0;
+            currentTranscript = '';
+
+            if (silenceTimer) { clearTimeout(silenceTimer); silenceTimer = null; }
+
+            document.getElementById('conversationList').innerHTML = '';
+            document.getElementById('conversationCard').classList.remove('visible');
+            document.getElementById('statusArea').classList.remove('visible');
+            document.getElementById('doneButton').classList.remove('visible');
+            document.getElementById('progressBar').style.display = 'none';
+            document.getElementById('errorMessage').classList.remove('visible');
+            document.getElementById('confirmArea').classList.remove('visible');
+            document.getElementById('replayBtn').classList.remove('visible');
+            document.getElementById('encouragement').classList.remove('visible');
+            document.getElementById('encouragement').textContent = '';
+
+            updateButtonState('ready');
+            showStartButton(true);
+
+            if (fullReset) {
+                updateQuestionDisplay(settings.question);
+            }
+        }
+
+        function finishEarly() {
+            if (silenceTimer) { clearTimeout(silenceTimer); silenceTimer = null; }
+            pendingFinish = true;
+            if (isRecording && recognition) {
+                recognition.stop(); // onend will handle calling generateFinalAnswer
+            } else {
+                pendingFinish = false;
+                generateFinalAnswer();
+            }
+        }
+
+        function showStartButton(show) {
+            document.getElementById('startButton').style.display = show ? 'flex' : 'none';
+        }
+
+        // ============================================
+        // Text-to-Speech
+        // ============================================
+        function readQuestionThenRecord(text) {
+            updateButtonState('speaking');
+            updateStatus('🔊 Reading question aloud...', 'speaking');
+            document.getElementById('replayBtn').classList.add('visible');
+
+            speechSynthesis.cancel();
+
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'en-US';
+            utterance.rate = 0.9;
+            utterance.pitch = 1;
+            const voice = getSelectedVoice();
+            if (voice) utterance.voice = voice;
+
+            utterance.onend = function() {
+                setTimeout(() => startRecording(), 500);
+            };
+            utterance.onerror = function() {
+                setTimeout(() => startRecording(), 500);
+            };
+
+            speechSynthesis.speak(utterance);
+        }
+
+        function replayCurrentQuestion() {
+            if (!sessionActive) return;
+            speechSynthesis.cancel();
+            const lastQ = conversationHistory.filter(c => c.role === 'question').pop();
+            if (lastQ) {
+                const u = new SpeechSynthesisUtterance(lastQ.text);
+                u.lang = 'en-US'; u.rate = 0.9;
+                const voice = getSelectedVoice();
+                if (voice) u.voice = voice;
+                speechSynthesis.speak(u);
+            }
+        }
+
+        // ============================================
+        // Speech Recognition
+        // ============================================
+        function initSpeechRecognition() {
+            const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!SR) {
+                document.getElementById('statusText').textContent = '⚠️ Speech recognition not supported. Try Chrome.';
+                document.getElementById('startButton').disabled = true;
+                return;
+            }
+
+            recognition = new SR();
+            recognition.continuous = true;
+            recognition.interimResults = true;
+            recognition.lang = 'en-US';
+
+            recognition.onstart = function() {
+                isRecording = true;
+                currentTranscript = '';
+                updateButtonState('listening');
+                updateStatus('🎤 Go ahead, speak your answer!', 'listening');
+                document.getElementById('doneButton').classList.add('visible');
+
+                // 2x grace period before silence detection
+                if (silenceTimer) clearTimeout(silenceTimer);
+                silenceTimer = setTimeout(() => {
+                    resetSilenceTimer();
+                }, settings.silenceTimeout * 1000 * 2);
+            };
+
+            recognition.onresult = function(event) {
+                let finalTranscript = '';
+                let interimTranscript = '';
+
+                for (let i = event.resultIndex; i < event.results.length; i++) {
+                    const transcript = event.results[i][0].transcript;
+                    if (event.results[i].isFinal) {
+                        finalTranscript += transcript;
+                    } else {
+                        interimTranscript += transcript;
+                    }
+                }
+
+                if (finalTranscript || interimTranscript) {
+                    resetSilenceTimer();
+                }
+
+                if (finalTranscript) {
+                    currentTranscript += finalTranscript;
+                }
+
+                const heard = (currentTranscript + interimTranscript).trim();
+                if (heard) {
+                    updateStatus('🎤 Heard: "' + heard.slice(-60) + '"', 'listening');
+                }
+            };
+
+            recognition.onerror = function(event) {
+                console.error('Speech recognition error:', event.error);
+                if (event.error !== 'aborted' && event.error !== 'no-speech') {
+                    updateStatus('⚠️ Oops: ' + event.error + '. Try again!');
+                }
+            };
+
+            recognition.onend = function() {
+                isRecording = false;
+                document.getElementById('doneButton').classList.remove('visible');
+
+                if (!sessionActive) return;
+
+                // Race condition guard: if finishEarly was called, go directly to final
+                if (pendingFinish) {
+                    pendingFinish = false;
+                    // Capture any remaining transcript first
+                    const response = currentTranscript.trim();
+                    if (response) {
+                        allResponses.push(response);
+                        addToConversation('answer', response);
+                    }
+                    generateFinalAnswer();
+                    return;
+                }
+
+                processRecordedResponse();
+            };
+        }
+
+        function startRecording() {
+            if (!recognition) return;
+            try {
+                currentTranscript = '';
+                recognition.start();
+            } catch (e) {
+                console.error('Could not start recognition:', e);
+                updateStatus('⚠️ Could not start the microphone. Try again!');
+            }
+        }
+
+        function stopRecordingAndProcess() {
+            if (silenceTimer) { clearTimeout(silenceTimer); silenceTimer = null; }
+            if (recognition && isRecording) {
+                recognition.stop();
+            }
+        }
+
+        function resetSilenceTimer() {
+            if (silenceTimer) clearTimeout(silenceTimer);
+            if (!isRecording) return; // guard against race
+            silenceTimer = setTimeout(() => {
+                if (isRecording && recognition) recognition.stop();
+            }, settings.silenceTimeout * 1000);
+        }
+
+        // ============================================
+        // Response Processing (with Keep/Try Again)
+        // ============================================
+        function processRecordedResponse() {
+            const response = currentTranscript.trim();
+
+            if (!response) {
+                silentRetryCount++;
+                if (silentRetryCount > MAX_SILENT_RETRIES) {
+                    if (allResponses.length > 0) {
+                        updateStatus("That's okay! Let me put your answer together.");
+                        setTimeout(() => generateFinalAnswer(), 1000);
+                    } else {
+                        updateStatus("I couldn't hear anything. Tap Start to try again!");
+                        updateButtonState('ready');
+                    }
+                    return;
+                }
+                updateStatus("Hmm, I didn't quite catch that. Want to try again?");
+                setTimeout(() => {
+                    const lastQ = conversationHistory.filter(c => c.role === 'question').pop();
+                    if (lastQ) readQuestionThenRecord(lastQ.text);
+                }, 1500);
+                return;
+            }
+
+            // Reset silent retry counter on successful speech
+            silentRetryCount = 0;
+
+            // Show "Keep / Try Again" confirmation
+            pendingResponse = response;
+            document.getElementById('confirmText').textContent = '"' + response + '"';
+            document.getElementById('confirmArea').classList.add('visible');
+            showStartButton(false);
+            document.getElementById('doneButton').classList.remove('visible');
+            updateStatus("Did I hear you right?");
+        }
+
+        function confirmResponse(keep) {
+            document.getElementById('confirmArea').classList.remove('visible');
+            showStartButton(true);
+
+            if (!keep) {
+                // Try again — re-read the last question
+                pendingResponse = '';
+                updateStatus("No problem! Let's try again.");
+                setTimeout(() => {
+                    const lastQ = conversationHistory.filter(c => c.role === 'question').pop();
+                    if (lastQ) readQuestionThenRecord(lastQ.text);
+                }, 800);
+                return;
+            }
+
+            // Keep the response
+            const response = pendingResponse;
+            pendingResponse = '';
+
+            addToConversation('answer', response);
+            allResponses.push(response);
+
+            // Show encouragement
+            showEncouragement();
+
+            // Check for explicit "done" phrases
+            const lower = response.toLowerCase();
+            const saidDone = DONE_PHRASES.some(p => lower.includes(p));
+            const saidDontKnow = DONT_KNOW_PHRASES.some(p => lower.includes(p));
+
+            if (saidDone && allResponses.length > 1) {
+                updateStatus("Okay! Let me put your answer together...");
+                setTimeout(() => generateFinalAnswer(), 1000);
+                return;
+            }
+
+            if (saidDontKnow) {
+                consecutiveDontKnow++;
+                if (consecutiveDontKnow >= 2 && allResponses.length > 1) {
+                    updateStatus("That's totally fine! Let me write it up for you.");
+                    setTimeout(() => generateFinalAnswer(), 1000);
+                    return;
+                }
+            } else {
+                consecutiveDontKnow = 0;
+            }
+
+            updateProgress();
+            decideNextStep();
+        }
+
+        function showEncouragement() {
+            const el = document.getElementById('encouragement');
+            el.textContent = ENCOURAGEMENTS[Math.floor(Math.random() * ENCOURAGEMENTS.length)];
+            el.classList.add('visible');
+            setTimeout(() => el.classList.remove('visible'), 2500);
+        }
+
+        // ============================================
+        // Single AI Decision Call (merged completeness + followup)
+        // ============================================
+        async function decideNextStep() {
+            updateButtonState('thinking');
+            updateStatus('Let me think about that... 🤔');
+            showStartButton(false);
+
+            // For word/detail criteria, check locally first
+            if (settings.criteriaType !== 'complete') {
+                const totalText = allResponses.join(' ');
+                const wordCount = totalText.split(/\s+/).filter(w => w.length > 0).length;
+                const detailCount = getContentResponses().length;
+
+                const met = settings.criteriaType === 'words'
+                    ? wordCount >= settings.criteriaValue
+                    : detailCount >= settings.criteriaValue;
+
+                if (met || followupCount >= settings.maxFollowups) {
+                    generateFinalAnswer();
+                    return;
+                }
+            }
+
+            // Max follow-ups hard stop
+            if (followupCount >= settings.maxFollowups) {
+                generateFinalAnswer();
+                return;
+            }
+
+            // Single AI call: decide continue or finalize
+            const conversationSoFar = conversationHistory
+                .map(c => `${c.role === 'question' ? 'Teacher' : 'Student'}: ${c.text}`)
+                .join('\n');
+
+            const questionsAsked = conversationHistory
+                .filter(c => c.role === 'question')
+                .map(c => c.text.toLowerCase());
+
+            const whatElseCount = questionsAsked.filter(q =>
+                q.includes('what else') || q.includes('anything else') || q.includes('did you do anything')
+            ).length;
+
+            const lastResponse = allResponses[allResponses.length - 1] || '';
+            const lastLower = lastResponse.toLowerCase();
+            const saidDontKnow = DONT_KNOW_PHRASES.some(p => lastLower.includes(p));
+
+            let situationNote = '';
+            if (saidDontKnow) {
+                situationNote = '\n⚠️ Student just said "I don\'t know." Ask a SPECIFIC memory-jogging question (not "what else").';
+            }
+            if (whatElseCount >= 2) {
+                situationNote += `\n⚠️ Already asked "what else" ${whatElseCount} times. DO NOT ask this again.`;
+            }
+
+            const systemPrompt = `You are a friendly teacher helping a student answer a question verbally. The student has difficulty with writing.
+
+Original question: "${settings.question}"
+
+Conversation so far:
+${conversationSoFar}
+
+Questions already asked (NEVER repeat these or similar):
+${questionsAsked.map((q, i) => `${i+1}. "${q}"`).join('\n')}
+
+Teacher context: ${settings.context}${situationNote}
+
+Criteria: ${settings.criteriaType === 'complete' ? 'Use your judgment — does the student have a complete, detailed answer?' : `Target: ${settings.criteriaValue} ${settings.criteriaType}`}
+
+RESPOND IN EXACTLY ONE OF THESE FORMATS:
+
+If the answer is complete enough:
+DONE
+
+If you need more detail, respond with ONLY your follow-up question (no prefix, no commentary).
+
+RULES:
+1. NEVER repeat a question already asked (check the list above).
+2. Keep questions SHORT — under 8 words.
+3. When the student said "I don't know," use specific memory-jogging questions:
+   "Did you eat anything today?" / "Did you go anywhere?" / "Did you play with anyone?" / "Did you watch any TV?" / "What happened this morning?"
+4. For "what did you do today" questions: first ask for detail about what they mentioned, then one "what else," then ONLY specific memory jogs.
+5. NEVER ask "what else did you do" more than twice total.
+6. If 4+ good content responses have been given, respond DONE.
+7. Respond with ONLY "DONE" or a short question. Nothing else.`;
+
+            try {
+                const result = await callClaude(systemPrompt, 'What should the next step be?');
+                const trimmed = result.trim();
+
+                if (trimmed.toUpperCase() === 'DONE') {
+                    generateFinalAnswer();
+                } else {
+                    followupCount++;
+                    addToConversation('question', trimmed);
+                    updateQuestionDisplay(trimmed, true);
+                    showStartButton(true);
+                    setTimeout(() => readQuestionThenRecord(trimmed), 500);
+                }
+            } catch (e) {
+                console.error('Error in AI decision:', e);
+                // If AI fails, try to finalize with what we have
+                if (allResponses.length > 0) {
+                    generateFinalAnswer();
+                } else {
+                    showError('Connection issue: ' + e.message);
+                    showStartButton(true);
+                    updateButtonState('ready');
+                }
+            }
+        }
+
+        // ============================================
+        // Final Answer Generation
+        // ============================================
+        async function generateFinalAnswer() {
+            sessionActive = false;
+            pendingFinish = false;
+
+            updateButtonState('thinking');
+            updateStatus('✨ Writing your answer...');
+            document.getElementById('doneButton').classList.remove('visible');
+            showStartButton(false);
+
+            // Filter out meta-responses
+            const contentResponses = getContentResponses();
+
+            if (contentResponses.length === 0) {
+                updateStatus("No answer recorded. Tap Start to try again!");
+                showStartButton(true);
+                updateButtonState('ready');
+                return;
+            }
+
+            const systemPrompt = `You are helping a student who has difficulty writing. Combine their verbal responses into complete, well-formed sentences they can write down.
+
+Teacher's context: ${settings.context}
+
+CRITICAL RULES:
+1. Create proper sentences with correct grammar and punctuation.
+2. Each idea should be a complete sentence (subject + verb).
+3. ONLY use facts explicitly stated by the student. NEVER add names, feelings, events, reasons, or details they did not say.
+4. Keep vocabulary simple and age-appropriate.
+5. Remove filler words (um, uh, like) and false starts.
+6. Preserve uncertainty words if the student said them ("maybe," "I think," "I guess").
+7. Keep the student's own vocabulary — do not upgrade "big and scary" to "formidable."
+8. Output ONLY the final sentences — no explanations, no preamble, no quotes, no commentary.`;
+
+            const userPrompt = `Original question: "${settings.question}"
+
+Student's responses (combine into proper sentences):
+${contentResponses.map((r, i) => `${i+1}. "${r}"`).join('\n')}
+
+Write the final answer as complete sentences:`;
+
+            try {
+                const cleanedAnswer = await callClaude(systemPrompt, userPrompt);
+                showWriteOverlay(cleanedAnswer);
+                launchConfetti();
+            } catch (e) {
+                console.error('Error generating final answer:', e);
+                // Fallback: basic cleanup
+                const fallback = contentResponses
+                    .map(r => {
+                        r = r.trim();
+                        if (!r) return '';
+                        r = r.charAt(0).toUpperCase() + r.slice(1);
+                        if (!r.match(/[.!?]$/)) r += '.';
+                        return r;
+                    })
+                    .filter(r => r.length > 0)
+                    .join(' ');
+                showWriteOverlay(fallback || 'No answer recorded.');
+            }
+        }
+
+        // Filter meta-responses from final compilation
+        function getContentResponses() {
+            return allResponses.filter(r => {
+                const lower = r.toLowerCase().trim();
+                return !META_PHRASES.some(p => lower.includes(p));
+            });
+        }
+
+        // ============================================
+        // WRITE THIS Overlay
+        // ============================================
+        function showWriteOverlay(answerText) {
+            document.getElementById('writeQuestion').textContent = settings.question;
+
+            // Split into sentences and show one per line
+            const sentences = answerText
+                .split(/(?<=[.!?])\s+/)
+                .filter(s => s.trim().length > 0);
+
+            const linesContainer = document.getElementById('writeAnswerLines');
+            linesContainer.innerHTML = '';
+            sentences.forEach(sentence => {
+                const div = document.createElement('div');
+                div.className = 'write-sentence';
+                div.textContent = sentence.trim();
+                linesContainer.appendChild(div);
+            });
+
+            document.getElementById('writeOverlay').classList.add('visible');
+        }
+
+        function readFinalAnswerAloud() {
+            speechSynthesis.cancel();
+            const sentences = document.querySelectorAll('.write-sentence');
+            const fullText = Array.from(sentences).map(s => s.textContent).join(' ');
+            const u = new SpeechSynthesisUtterance(fullText);
+            u.lang = 'en-US'; u.rate = 0.85;
+            const voice = getSelectedVoice();
+            if (voice) u.voice = voice;
+            speechSynthesis.speak(u);
+        }
+
+        function closeWriteOverlay() {
+            speechSynthesis.cancel();
+            document.getElementById('writeOverlay').classList.remove('visible');
+            resetSession(true);
+        }
+
+        // ============================================
+        // Confetti 🎉
+        // ============================================
+        function launchConfetti() {
+            const canvas = document.getElementById('confettiCanvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+
+            const colors = ['#7CB342','#4A90A4','#9F7AEA','#F6AD55','#FC8181','#48BB78','#FFD700'];
+            const particles = [];
+
+            for (let i = 0; i < 120; i++) {
+                particles.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height - canvas.height,
+                    w: Math.random() * 10 + 5,
+                    h: Math.random() * 6 + 3,
+                    color: colors[Math.floor(Math.random() * colors.length)],
+                    vx: (Math.random() - 0.5) * 4,
+                    vy: Math.random() * 4 + 2,
+                    rot: Math.random() * 360,
+                    rotSpeed: (Math.random() - 0.5) * 10,
+                    opacity: 1
+                });
+            }
+
+            let frame = 0;
+            function animate() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                let alive = false;
+
+                particles.forEach(p => {
+                    if (p.opacity <= 0) return;
+                    alive = true;
+                    p.x += p.vx;
+                    p.y += p.vy;
+                    p.vy += 0.1;
+                    p.rot += p.rotSpeed;
+
+                    if (frame > 60) p.opacity -= 0.015;
+
+                    ctx.save();
+                    ctx.translate(p.x, p.y);
+                    ctx.rotate(p.rot * Math.PI / 180);
+                    ctx.globalAlpha = Math.max(0, p.opacity);
+                    ctx.fillStyle = p.color;
+                    ctx.fillRect(-p.w/2, -p.h/2, p.w, p.h);
+                    ctx.restore();
+                });
+
+                frame++;
+                if (alive && frame < 200) {
+                    requestAnimationFrame(animate);
+                } else {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                }
+            }
+            animate();
+        }
+
+        // ============================================
+        // API Call
+        // ============================================
+        async function callClaude(systemPrompt, userMessage) {
+            const response = await fetch('/api/claude', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    system: systemPrompt,
+                    messages: [{ role: 'user', content: userMessage }]
+                })
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.error || `API error: ${response.status}`);
+            }
+
+            const data = await response.json();
+            return data.content[0].text;
+        }
+
+        // ============================================
+        // Conversation & Progress UI
+        // ============================================
+        function addToConversation(role, text) {
+            conversationHistory.push({ role, text });
+            const list = document.getElementById('conversationList');
+            const item = document.createElement('div');
+            item.className = `conversation-item ${role}`;
+            item.innerHTML = `
+                <div class="conversation-item-label">${role === 'question' ? '❓ Question' : '💬 Your answer'}</div>
+                <div class="conversation-item-text">${escapeHtml(text)}</div>
+            `;
+            list.appendChild(item);
+        }
+
+        function updateProgress() {
+            const contentResponses = getContentResponses();
+            const totalText = contentResponses.join(' ');
+            const wordCount = totalText.split(/\s+/).filter(w => w.length > 0).length;
+            const detailCount = contentResponses.length;
+
+            let current, target, label;
+
+            if (settings.criteriaType === 'words') {
+                current = wordCount;
+                target = settings.criteriaValue;
+                label = 'words';
+            } else if (settings.criteriaType === 'details') {
+                current = detailCount;
+                target = settings.criteriaValue;
+                label = 'details';
+            } else {
+                document.getElementById('progressInfo').textContent = `${contentResponses.length} responses so far`;
+                document.getElementById('progressBar').style.display = 'none';
+                return;
+            }
+
+            const percent = Math.min(100, Math.round((current / target) * 100));
+            document.getElementById('progressInfo').textContent = `${current} / ${target} ${label}`;
+            document.getElementById('progressBar').style.display = 'block';
+            document.getElementById('progressFill').style.width = `${percent}%`;
+        }
+
+        // ============================================
+        // UI Helpers
+        // ============================================
+        function updateButtonState(state) {
+            const button = document.getElementById('startButton');
+            button.classList.remove('listening', 'speaking', 'thinking');
+            button.disabled = false;
+
+            const icons = {
+                ready: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg><span>Start</span>`,
+                speaking: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg><span>Reading...</span>`,
+                listening: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg><span>Tap to Stop</span>`,
+                thinking: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M12 6v6l4 2"></path></svg><span>Thinking...</span>`
+            };
+
+            button.innerHTML = icons[state] || icons.ready;
+
+            if (state === 'speaking' || state === 'thinking') { button.disabled = true; }
+            if (state !== 'ready') { button.classList.add(state); }
+        }
+
+        function updateStatus(text, className = '') {
+            const el = document.getElementById('statusText');
+            if (el) {
+                el.textContent = text;
+                el.className = 'status-text' + (className ? ' ' + className : '');
+            }
+        }
+
+        function showError(message) {
+            const el = document.getElementById('errorMessage');
+            if (el) { el.textContent = message; el.classList.add('visible'); }
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+    </script>
+</body>
+</html>

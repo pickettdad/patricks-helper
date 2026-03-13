@@ -1,0 +1,7 @@
+{
+  "name": "patricks-answer-helper",
+  "version": "2.0.0",
+  "private": true,
+  "description": "AI-powered speech-to-writing tool for students with writing difficulties",
+  "type": "module"
+}
